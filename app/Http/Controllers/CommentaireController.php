@@ -27,8 +27,8 @@ class CommentaireController extends Controller
         // Vérification et stockage du fichier si présent
         if ($request->hasFile('fichier')) {
             $file = $request->file('fichier');
-            $path = $file->store('commentaires', 'public');
-            $commentaire->fichier_path = $path;
+            $filePath = $file->store();
+            $commentaire->fichier_path = $filePath;
         }
 
         $commentaire->save();

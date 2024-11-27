@@ -47,7 +47,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Ajouter un commentaire</h5>
-                            <form action="{{ route('commentaires.store', $ticket->id) }}" method="POST">
+                            <form action="{{ route('commentaires.store', $ticket->id) }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <div class="mb-3">
                                     <label for="contenu" class="form-label">Nouveau commentaire</label>
@@ -56,8 +56,18 @@
                                         <div class="text-danger mt-2">{{ $message }}</div>
                                     @enderror
                                 </div>
+
+                                <div class="mb-3">
+                                    <label for="fichier" class="form-label">Joindre un fichier</label>
+                                    <input type="file" class="form-control" id="fichier" name="fichier">
+                                    @error('fichier')
+                                        <div class="text-danger mt-2">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
                                 <button type="submit" class="btn btn-primary w-100">Ajouter un commentaire</button>
                             </form>
+
                         </div>
                     </div>
                 @endif
@@ -76,6 +86,15 @@
                                         <small class="text-muted">{{ $commentaire->created_at->format('d/m/Y H:i') }}</small>
                                     </div>
                                     <p class="mb-0">{{ $commentaire->contenu }}</p>
+
+                                    <!-- Affichage du fichier si présent -->
+                                    @if ($commentaire->fichier_path)
+                                        <div class="mt-2">
+                                            <a href="{{ asset('storage/' . $commentaire->fichier_path   ) }}" class="btn btn-link" target="_blank">
+                                                Voir le fichier joint
+                                            </a>
+                                        </div>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>
