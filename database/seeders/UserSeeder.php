@@ -22,6 +22,7 @@ class UserSeeder extends Seeder
         ]);
         Bouncer::assign('admin')->to($admin);
 
+
         // Créer un utilisateur développeur
         $developer = User::create([
             'name' => 'Developer User',

@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('titre');
+            $table->string('titre')->default('Je suis le titre par défaut');
             $table->text('description');
-            $table->foreignId('categorie_id')->constrained('categories');
-            $table->foreignId('priorite_id')->constrained('priorites');
+            $table->foreignId('categorie_id')->constrained('categories')->default(1);
+            $table->foreignId('priorite_id')->constrained('priorites')->default(1);
             $table->enum('statut', ['Ouvert', 'Assigné', 'Résolu', 'Annulé'])->default('Ouvert');
             $table->foreignId('developpeur_id')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();

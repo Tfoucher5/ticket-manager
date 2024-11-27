@@ -17,7 +17,7 @@ class NouveauCommentaireNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['mail']; // Utiliser uniquement les e-mails
+        return ['mail'];
     }
 
     public function toMail($notifiable)
@@ -28,7 +28,7 @@ class NouveauCommentaireNotification extends Notification
         return (new MailMessage)
             ->subject("Nouveau commentaire sur le ticket : {$ticket->titre}")
             ->greeting("Bonjour {$notifiable->name},")
-            ->line("Un nouveau commentaire a été ajouté par {$this->commentaire->auteur->name}.")
+            ->line("Un nouveau commentaire a été ajouté par {$this->commentaire->user->name}.")
             ->line("Commentaire : {$this->commentaire->contenu}")
             ->action('Voir le ticket', $url)
             ->line("Merci de consulter le ticket pour plus de détails.");

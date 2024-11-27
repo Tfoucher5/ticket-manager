@@ -3,87 +3,52 @@
 namespace App\Http\Controllers;
 
 use App\Models\Commentaire;
+use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Http\Request;
+use App\Notifications\NouveauCommentaireNotification;
 
 class CommentaireController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Méthode pour ajouter un commentaire
     public function store(Request $request, Ticket $ticket)
     {
+        // Valider le contenu du commentaire
         $request->validate([
-            'contenu' => 'required|string|max:2000',
-            'fichier' => 'nullable|file|mimes:jpg,png,pdf,docx,xlsx|max:2048',
+            'contenu' => 'required|string|max:1000',
         ]);
 
-        $fichierPath = $request->file('fichier')
-            ? $request->file('fichier')->store('commentaires')
-            : null;
+        // Créer un nouveau commentaire
+        $commentaire = new Commentaire();
+        $commentaire->contenu = $request->contenu;
+        $commentaire->ticket_id = $ticket->id;
+        $commentaire->user_id = auth()->id();
 
-        $commentaire = $ticket->commentaires()->create([
-            'contenu' => $request->contenu,
-            'auteur_id' => auth()->id(),
-            'fichier' => $fichierPath,
-        ]);
-
-        $destinataire = $ticket->developpeur_id && auth()->id() === $ticket->developpeur_id
-            ? $ticket->client
-            : $ticket->developpeur;
-
-        if ($destinataire) {
-            $destinataire->notify(new NouveauCommentaireNotification($commentaire));
+        // Vérification et stockage du fichier si présent
+        if ($request->hasFile('fichier')) {
+            $file = $request->file('fichier');
+            $path = $file->store('commentaires', 'public');
+            $commentaire->fichier_path = $path;
         }
 
-        return redirect()->route('tickets.show', $ticket)->with('success', 'Commentaire ajouté avec succès.');
-    }
+        $commentaire->save();
 
+        if (auth()->user()->isA('developpeur'))
+        {
+            $client = User::where('id', $ticket->user_id)->first();
+            if ($client) {
+                $client->notify(new NouveauCommentaireNotification($commentaire));
+            }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Commentaire $commentaire)
-    {
-        //
-    }
+        } elseif (auth()->user()->isA('client'))
+        {
+            $developpeur = User::where('id', $ticket->developpeur_id)->first();
+            if ($developpeur) {
+                $developpeur->notify(new NouveauCommentaireNotification($commentaire));
+            }
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Commentaire $commentaire)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Commentaire $commentaire)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Commentaire $commentaire)
-    {
-        //
+        // Rediriger vers la page du ticket avec un message de succès
+        return redirect()->route('tickets.show', $ticket->id)->with('success', 'Commentaire ajouté avec succès.');
     }
 }
